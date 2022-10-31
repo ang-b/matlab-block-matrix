@@ -1,12 +1,10 @@
-classdef blockMatrixBuilder < handle
-    %BLOCKMATRIXBUILDER Summary of this class goes here
+classdef BlockMatrix < handle
+    %BLOCKMATRIX Summary of this class goes here
     %   Detailed explanation goes here
     
     properties (GetAccess = public, SetAccess = private)
         rowBlocks
         columnBlocks
-%         rows
-%         columns
         rowSizes
         columnSizes
     end
@@ -16,7 +14,7 @@ classdef blockMatrixBuilder < handle
     end
     
     methods
-        function self = blockMatrixBuilder(varargin)        
+        function self = BlockMatrix(varargin)        
             self.rowBlocks = 0;
             self.columnBlocks = 0;
             self.rowSizes = 0;
@@ -39,7 +37,7 @@ classdef blockMatrixBuilder < handle
             end
         end
         
-        function self = addBlock(self, i, j, block)
+        function self = setBlock(self, i, j, block)
             blkRows = size(block, 1);
             blkCols = size(block, 2);
             if i <= size(self.data, 1) && j <= size(self.data, 2)
@@ -66,6 +64,13 @@ classdef blockMatrixBuilder < handle
                     self.columnBlocks = j;     
                 end        
             end           
+        end
+
+        function blk = getBlock(self, i, j)
+            if i > length(self.rowSizes) || j > length(self.columnSizes)
+                error("out of bounds");
+            end
+            blk = self.data{i,j};
         end
         
         function M = toMatrix(self)
