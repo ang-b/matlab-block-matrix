@@ -3,8 +3,8 @@ classdef BlockMatrix < handle
     %   Detailed explanation goes here
     
     properties (GetAccess = public, SetAccess = private)
-        rowBlocks
-        columnBlocks
+%         rowBlocks
+%         columnBlocks
         rowSizes
         columnSizes
     end
@@ -15,8 +15,8 @@ classdef BlockMatrix < handle
     
     methods
         function self = BlockMatrix(varargin)        
-            self.rowBlocks = 0;
-            self.columnBlocks = 0;
+%             self.rowBlocks = 0;
+%             self.columnBlocks = 0;
             self.rowSizes = 0;
             self.columnSizes = 0;
             switch (nargin)
@@ -51,31 +51,30 @@ classdef BlockMatrix < handle
                             (self.rowSizes(i) == blkRows && self.columnSizes(j) == 0) || ...
                             (self.rowSizes(i) == 0 && self.columnSizes(j) == blkCols)
                               self.data{i,j} = block;
+                              % TODO: need to handle dimensions when adding
+                              % a block that is zero size on either
+                              % dimension
                          else
-                             error('addBlock:cat','Cannot add block of different size');
+                             error("setBlock:cat", "Cannot add block of different size");
                          end
                      end
                  end
-            end % else it needs to grow
-            
-            if i > self.rowBlocks 
-                self.rowBlocks = i;
-                if j > self.columnBlocks
-                    self.columnBlocks = j;     
-                end        
-            end           
+            else
+                error("setBlock:idx", "Index out of bounds");
+            end % TODO: handle growth
+                     
         end
 
         function blk = getBlock(self, i, j)
             if i > length(self.rowSizes) || j > length(self.columnSizes)
-                error("out of bounds");
+                error("getBlock:idx", "Index out of bounds");
             end
             blk = self.data{i,j};
         end
         
         function M = toMatrix(self)
-            for i = 1:self.rowBlocks
-                for j = 1:self.columnBlocks
+            for i = 1:length(self.rowSizes)
+                for j = 1:length(self.columnSizes)
                     if isempty(self.data{i,j})
                         self.data{i,j} = zeros(self.rowSizes(i), self.columnSizes(j));
                     end
