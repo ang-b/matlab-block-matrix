@@ -123,6 +123,22 @@ classdef BlockMatrix < handle
             end
         end
 
+        function bm = transpose(self)
+            bm = BlockMatrix(length(self.columnSizes), length(self.rowSizes));
+            bm.columnSizes = self.rowSizes;
+            bm.rowSizes = self.columnSizes;
+            bm.data = self.data';
+            bm.data = cellfun(@transpose, bm.data, 'UniformOutput', false);
+        end
+
+        function bm = ctranspose(self)
+            bm = BlockMatrix(length(self.columnSizes), length(self.rowSizes));
+            bm.columnSizes = self.rowSizes;
+            bm.rowSizes = self.columnSizes;
+            bm.data = self.data';
+            bm.data = cellfun(@ctranspose, bm.data, 'UniformOutput', false);
+        end
+
         function s = size(self, varargin)
             if isempty(varargin)
                 s = [length(self.rowSizes) length(self.columnSizes)];
