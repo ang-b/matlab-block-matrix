@@ -108,4 +108,13 @@ function test_blockHcat(testCase)
     testCase.assertEqual(hbm.toMatrix(), [aMat oMat]);
 end
 
+function test_blockVcat(testCase)
+    aMat = rand(7);
+    oMat = rand(4,7);
+    abm = BlockMatrix.fromMatrix(aMat, [3 2 2], [3 4]);
+    obm = BlockMatrix.fromMatrix(oMat, 4, [3 4]);
+    hbm = vcat(abm, obm);
+    testCase.assertEqual(hbm.toMatrix(), [aMat; oMat]);
+end
+
 % TODO: growing data

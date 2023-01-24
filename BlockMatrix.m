@@ -97,6 +97,32 @@ classdef BlockMatrix < handle
             end
         end
 
+        function blkMatrix = vcat(self, bm)
+            if ~isa(bm,'BlockMatrix')
+                error("BlockMatrix:vcat", "Cannot concatenate with other objects");
+            end
+            thisCols = self.columnSizes;
+            otherCols = bm.columnSizes;
+            if length(thisCols) == length(otherCols) ...
+                    && all(thisCols == otherCols)
+                blkMatrix = BlockMatrix( ...
+                    length(self.rowSizes) + length(bm.rowSizes), length(thisCols));
+                for i = 1:length(self.rowSizes)
+                    for j = 1:length(thisCols)
+                        blkMatrix.setBlock(i, j, self.getBlock(i,j));
+                    end
+                end
+                offset = i;
+                for i = 1:length(bm.rowSizes)
+                    for j=1:length(otherCols)
+                        blkMatrix.setBlock(i+offset, j, bm.getBlock(i,j));
+                    end
+                end
+            else
+                error("BlockMatrix:vcat", "Incompatible dimensions");
+            end
+        end
+
         function s = size(self, varargin)
             if isempty(varargin)
                 s = [length(self.rowSizes) length(self.columnSizes)];
