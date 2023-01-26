@@ -37,12 +37,20 @@ classdef BlockMatrix < handle
             end
         end
 
-        function n = nrows(self)
+        function n = nrowblocks(self)
             n = length(self.rowSizes);
         end
 
-        function m = ncols(self)
+        function m = ncolblocks(self)
             m = length(self.columnSizes);
+        end
+
+        function n = nrows(self)
+            n = sum(self.rowSizes);
+        end
+
+        function m = ncols(self)
+            m = sum(self.columnSizes);
         end
         
         function self = setBlock(self, i, j, block)
@@ -87,16 +95,16 @@ classdef BlockMatrix < handle
             if ~isa(bm,'BlockMatrix')
                 error("BlockMatrix:hcat", "Cannot concatenate with other objects");
             end
-            if self.nrows() == bm.nrows() && all(self.rowSizes == bm.rowSizes)
-                blkMatrix = BlockMatrix(self.nrows, self.ncols()+bm.ncols());
-                for i = 1:self.nrows()
-                    for j = 1:self.ncols()
+            if self.nrowblocks() == bm.nrowblocks() && all(self.rowSizes == bm.rowSizes)
+                blkMatrix = BlockMatrix(self.nrowblocks, self.ncolblocks() + bm.ncolblocks());
+                for i = 1:self.nrowblocks()
+                    for j = 1:self.ncolblocks()
                         blkMatrix.setBlock(i,j,self.getBlock(i,j));
                     end
                 end
                 offset = j;
-                for i = 1:bm.nrows()
-                    for j=1:bm.ncols()
+                for i = 1:bm.nrowblocks()
+                    for j=1:bm.ncolblocks()
                         blkMatrix.setBlock(i, j+offset, bm.getBlock(i,j));
                     end
                 end
@@ -109,16 +117,16 @@ classdef BlockMatrix < handle
             if ~isa(bm,'BlockMatrix')
                 error("BlockMatrix:vcat", "Cannot concatenate with other objects");
             end
-            if self.ncols() == bm.ncols() && all(self.columnSizes == bm.columnSizes)
-                blkMatrix = BlockMatrix(self.nrows()+bm.nrows(), self.ncols());
-                for i = 1:self.nrows()
-                    for j = 1:self.ncols()
+            if self.ncolblocks() == bm.ncolblocks() && all(self.columnSizes == bm.columnSizes)
+                blkMatrix = BlockMatrix(self.nrowblocks()+bm.nrowblocks(), self.ncolblocks());
+                for i = 1:self.nrowblocks()
+                    for j = 1:self.ncolblocks()
                         blkMatrix.setBlock(i, j, self.getBlock(i,j));
                     end
                 end
                 offset = i;
-                for i = 1:bm.nrows()
-                    for j=1:bm.ncols()
+                for i = 1:bm.nrowblocks()
+                    for j=1:bm.ncolblocks()
                         blkMatrix.setBlock(i+offset, j, bm.getBlock(i,j));
                     end
                 end
@@ -128,7 +136,7 @@ classdef BlockMatrix < handle
         end
 
         function bm = blockApply(self,op)
-            bm = BlockMatrix(self.nrows(), self.ncols());
+            bm = BlockMatrix(self.nrowblocks(), self.ncolblocks());
             bm.data = cellfun(op, self.data, 'UniformOutput', false);
             rowSizesMat = cellfun(@(x) size(x,1), bm.data);
             colSizesMat = cellfun(@(x) size(x,2), bm.data);
@@ -174,8 +182,8 @@ classdef BlockMatrix < handle
 
         function M = toMatrix(self)
             if ~self.cached
-                for i = 1:self.nrows()
-                    for j = 1:self.ncols()
+                for i = 1:self.nrowblocks()
+                    for j = 1:self.ncolblocks()
                         if isempty(self.data{i,j})
                             self.data{i,j} = zeros(self.rowSizes(i), ...
                                                    self.columnSizes(j));
@@ -217,13 +225,13 @@ classdef BlockMatrix < handle
         end
 
         function checkSizeBounds(self, i, j)
-            if i > self.nrows() || j > self.ncols() || i < 1 || j < 1
+            if i > self.nrowblocks() || j > self.ncolblocks() || i < 1 || j < 1
                 error("out of bounds");
             end
         end
 
         function bm = transposeHelper(self, fun)
-            bm = BlockMatrix(self.ncols(), self.nrows());
+            bm = BlockMatrix(self.ncolblocks(), self.nrowblocks());
             bm.columnSizes = self.rowSizes;
             bm.rowSizes = self.columnSizes;
             bm.data = self.data';

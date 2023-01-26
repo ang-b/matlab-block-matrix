@@ -1,6 +1,6 @@
 # Block Matrix
 Object representing a block matrix.
-It allows for easy block definition, handling, extraction, concatenation and transformations, without worrying to much about your indices.
+It allows for easy block definition, handling, extraction, concatenation and transformations, without worrying too much about your indices.
 
 The following methods are provided (see test file for examples):
 
