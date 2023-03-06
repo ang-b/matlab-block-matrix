@@ -99,13 +99,19 @@ classdef BlockMatrix < handle
                 blkMatrix = BlockMatrix(self.nrowblocks, self.ncolblocks() + bm.ncolblocks());
                 for i = 1:self.nrowblocks()
                     for j = 1:self.ncolblocks()
-                        blkMatrix.setBlock(i,j,self.getBlock(i,j));
+                        tocat = self.getBlock(i,j);
+                        if ~isempty(tocat)
+                            blkMatrix.setBlock(i, j, tocat);
+                        end
                     end
                 end
                 offset = j;
                 for i = 1:bm.nrowblocks()
                     for j=1:bm.ncolblocks()
-                        blkMatrix.setBlock(i, j+offset, bm.getBlock(i,j));
+                        tocat = bm.getBlock(i,j);
+                        if ~isempty(tocat)
+                            blkMatrix.setBlock(i, j+offset, tocat);
+                        end
                     end
                 end
             else
@@ -121,13 +127,19 @@ classdef BlockMatrix < handle
                 blkMatrix = BlockMatrix(self.nrowblocks()+bm.nrowblocks(), self.ncolblocks());
                 for i = 1:self.nrowblocks()
                     for j = 1:self.ncolblocks()
-                        blkMatrix.setBlock(i, j, self.getBlock(i,j));
+                        tocat = self.getBlock(i,j);
+                        if ~isempty(tocat)
+                            blkMatrix.setBlock(i, j, tocat);
+                        end
                     end
                 end
                 offset = i;
                 for i = 1:bm.nrowblocks()
                     for j=1:bm.ncolblocks()
-                        blkMatrix.setBlock(i+offset, j, bm.getBlock(i,j));
+                        tocat = bm.getBlock(i,j);
+                        if ~isempty(tocat)
+                            blkMatrix.setBlock(i+offset, j, tocat);
+                        end
                     end
                 end
             else
@@ -175,24 +187,16 @@ classdef BlockMatrix < handle
         end
 
         function disp(self)
-            fprintf("(%i-by-%i Block Matrix)\n\n", length(self.rowSizes), ...
-                length(self.columnSizes));
+            fprintf("(%i-by-%i Block Matrix of size (%i,%i))\n\n", ...
+                self.nrowblocks(), self.ncolblocks(), self.nrows(), self.ncols());
             disp(self.toMatrix());
         end
 
         function M = toMatrix(self)
             if ~self.cached
-                for i = 1:self.nrowblocks()
-                    for j = 1:self.ncolblocks()
-                        if isempty(self.data{i,j})
-                            self.data{i,j} = zeros(self.rowSizes(i), ...
-                                                   self.columnSizes(j));
-                        end
-                    end
-                end
+                self.cache()
                 M = cell2mat(self.data);
                 self.matrixRep = M;
-                self.cached = true;
             else
                 M = self.matrixRep;
             end
@@ -228,6 +232,18 @@ classdef BlockMatrix < handle
             if i > self.nrowblocks() || j > self.ncolblocks() || i < 1 || j < 1
                 error("out of bounds");
             end
+        end
+
+        function cache(self)
+            for i = 1:self.nrowblocks()
+                for j = 1:self.ncolblocks()
+                    if isempty(self.data{i,j})
+                        self.data{i,j} = zeros(self.rowSizes(i), ...
+                                               self.columnSizes(j));
+                    end
+                end
+            end
+            self.cached = true;
         end
 
         function bm = transposeHelper(self, fun)
