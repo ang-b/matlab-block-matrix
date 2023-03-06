@@ -84,9 +84,12 @@ classdef BlockMatrix < handle
                 colRange(2) - colRange(1) + 1);
             for i = rowRange(1):rowRange(2)
                 for j = colRange(1):colRange(2)
-                    blkMatrix.setBlock(i - rowRange(1) + 1, ...
-                                       j - colRange(1) + 1, ...
-                                       self.getBlock(i,j));
+                    blk = self.getBlock(i,j);
+                    if ~isempty(blk)
+                        blkMatrix.setBlock(i - rowRange(1) + 1, ...
+                                           j - colRange(1) + 1, ...
+                                           blk);
+                    end
                 end
             end
         end
