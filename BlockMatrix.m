@@ -94,6 +94,7 @@ classdef BlockMatrix < handle
             end
         end
 
+        %% CONCATENATION FUNCTIONS
         function blkMatrix = hcat(self, bm)
             if ~isa(bm,'BlockMatrix')
                 error("BlockMatrix:hcat", "Cannot concatenate with other objects");
@@ -150,6 +151,7 @@ classdef BlockMatrix < handle
             end
         end
 
+        %% UNARY OPERATOR(s)
         function bm = blockApply(self,op)
             bm = BlockMatrix(self.nrowblocks(), self.ncolblocks());
             bm.data = cellfun(op, self.data, 'UniformOutput', false);
@@ -174,6 +176,47 @@ classdef BlockMatrix < handle
             bm = self.transposeHelper(@ctranspose);
         end
 
+        %% BINARY OPERATORS
+        function bm = plus(A, B)
+            if A.nrowblocks() ~= B.nrowblocks() ...
+                    || A.ncolblocks() ~= B.ncolblocks()
+                error("BlockMatrix:plus", "Incompatible block dimensions");
+            end
+            bm = BlockMatrix(A.nrowblocks(), A.ncolblocks());
+            for i = 1:A.nrowblocks()
+                for j = 1:A.ncolblocks()
+                    ba = A.getBlock(i,j);
+                    bb = B.getBlock(i,j);
+                    if isempty(ba), ba = 0; end
+                    if isempty(bb), bb = 0; end
+                    bm.setBlock(i,j, ba + bb);
+                end
+            end
+        end
+
+        function bm = mtimes(A, B)
+            if A.ncolblocks() ~= B.nrowblocks() ...
+                    || A.nrowblocks() ~= B.ncolblocks()
+                error("BlockMatrix:plus", "Incompatible block dimensions");
+            end
+            bm = BlockMatrix(A.nrowblocks(), B.ncolblocks());
+            for i = 1:A.nrowblocks()
+                for j = 1:B.ncolblocks()
+                    bc = 0;
+                    for k = 1:A.ncolblocks()
+                        ba = A.getBlock(i,k);
+                        bb = B.getBlock(k,j);
+                        if isempty(ba), ba = 0; end
+                        if isempty(bb), bb = 0; end
+                        bc = bc + ba * bb;
+                    end
+                    bm.setBlock(i,j,bc);
+                end
+            end
+           
+        end
+
+        %% BUILT-INS
         function s = size(self, varargin)
             if isempty(varargin)
                 s = [self.nrows() self.ncols()];
@@ -195,6 +238,7 @@ classdef BlockMatrix < handle
             disp(self.toMatrix());
         end
 
+        %% CONVERSION
         function M = toMatrix(self)
             if ~self.cached
                 self.cache()
