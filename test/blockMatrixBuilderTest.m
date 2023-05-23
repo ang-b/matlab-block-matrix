@@ -99,6 +99,53 @@ function test_fromMatrixWithRightPartition(testCase)
     testCase.assertEqual(bm.getBlock(2,3), aMat(5:7, 6:10));
 end
 
+function test_getBlockUpperLeftAlignment(testCase)
+    aMat = rand(12);
+    % create 4-by-4 block matrix of 3-by-3 blocks
+    bm = BlockMatrix.fromMatrix(aMat, ones(4,1)*3, ones(4,1)*3);
+    aSlice = aMat(1:6, 1:6); % top left 2-by-2 block
+    br = bm.getRange([1 2], [1 2]);
+    testCase.assertEqual(br.toMatrix(), aSlice);
+end
+
+function test_getBlockUppeRightAlignment(testCase)
+    aMat = rand(12);
+    % create 4-by-4 block matrix of 3-by-3 blocks
+    bm = BlockMatrix.fromMatrix(aMat, ones(4,1)*3, ones(4,1)*3);
+    aSlice = aMat(1:6, 7:12); % top right 2-by-2 block
+    br = bm.getRange([1 2], [3 4]);
+    testCase.assertEqual(br.toMatrix(), aSlice);
+end
+
+function test_getBlockLowerLeftAlignment(testCase)
+    aMat = rand(12);
+    % create 4-by-4 block matrix of 3-by-3 blocks
+    bm = BlockMatrix.fromMatrix(aMat, ones(4,1)*3, ones(4,1)*3);
+    aSlice = aMat(7:12, 1:6); % top left 2-by-2 block
+    br = bm.getRange([3 4], [1 2]);
+    testCase.assertEqual(br.toMatrix(), aSlice);
+end
+
+function test_getBlockLowerRightAlignment(testCase)
+    aMat = rand(12);
+    % create 4-by-4 block matrix of 3-by-3 blocks
+    bm = BlockMatrix.fromMatrix(aMat, ones(4,1)*3, ones(4,1)*3);
+    aSlice = aMat(7:12, 7:12); % top right 2-by-2 block
+    br = bm.getRange([3 4], [3 4]);
+    testCase.assertEqual(br.toMatrix(), aSlice);
+end
+
+function test_blockApply(testCase)
+    aMat = rand(12);
+    % create 4-by-4 block matrix of 3-by-3 blocks
+    bm = BlockMatrix.fromMatrix(aMat, ones(4,1)*3, ones(4,1)*3);
+    op = @(x) x \ eye(size(x)); % block-inverse operation
+    bi = bm.blockApply(op);
+    % check just a few blocks
+    testCase.assertEqual(bi.getBlock(1,1), op(aMat(1:3, 1:3)));
+    testCase.assertEqual(bi.getBlock(2,3), op(aMat(4:6, 7:9)));
+end
+
 function test_blockHcat(testCase)
     aMat = rand(7);
     oMat = rand(7,4);
@@ -106,6 +153,15 @@ function test_blockHcat(testCase)
     obm = BlockMatrix.fromMatrix(oMat, [3 2 2], 4);
     hbm = hcat(abm, obm);
     testCase.assertEqual(hbm.toMatrix(), [aMat oMat]);
+end
+
+function test_blockVcat(testCase)
+    aMat = rand(7);
+    oMat = rand(4,7);
+    abm = BlockMatrix.fromMatrix(aMat, [3 2 2], [3 4]);
+    obm = BlockMatrix.fromMatrix(oMat, 4, [3 4]);
+    hbm = vcat(abm, obm);
+    testCase.assertEqual(hbm.toMatrix(), [aMat; oMat]);
 end
 
 % TODO: growing data
